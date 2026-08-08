@@ -1,3 +1,4 @@
+
 *-----------------------------------------------------------
 * Title      :
 * Written by : Mega Drive Lab
@@ -13,46 +14,20 @@
  ;A5 VDP_DATA_PORT    |      D5 FREE 
  ;A6 VDP_CONTROL_PORT |      D6 FREE 
  ;A7 SP               |      D7 FREE
+
+
+
 ;-----------------------Equates-----------------------------
     include "inc\equates.inc"     
     
 ;------------------------Macros-----------------------------    
-
-;SET_VRAM_WR_ADDR #$addr ($FFFF max) (d0)
-;   0000_0000 0000_0000 A15A14A13A12_A11A10A9A8 A7A6A5A4_A3A2A1A0 ->
-;-> 01A13A12_A11A10A9A8 A7A6A5A4_A3A2A1A0 0000_0000 0000_00A14A15       
-SET_VRAM_WR_ADDR MACRO      ;VRAM write command
-    MOVE.L \1, d0           ;Loading address into d0
-    ROL.L #2, d0            ;Rotate left by 2 (Long)
-    ADDQ.W #1, d0           ;Add 1 to d0
-    ROR.W #2, d0            ;Rotate right by 2 (Word)
-    SWAP d0                 ;Swap d0 words
-    MOVE.L d0, (a6)         ;Write to VDP Control Port
-    ENDM
-    
-;SET_CRAM_WR_ADDR #$addr ($7F max) (d0)
-;   0000_0000 0000_0000 0000_0000 0A6A5A4_A3A1A0 ->
-;-> 1100_0000 0A6A5A4_A3A2A1A0 0000_0000 0000_0000
-SET_CRAM_WR_ADDR MACRO          ;CRAM write command
-    MOVE.L \1, d0               ;Loading address into D0
-    ORI.W #$C000, d0            ;Set bits 30,31 for CRAM write command
-    SWAP d0                     ;Swap D0 words
-    MOVE.L d0, (a6)             ;Write to VDP Control Port 
-    ENDM    
-    
-;SET_VSRAM_WR_ADDR #$addr ($4F max) (d0)
-;   0000_0000 0000_0000 0000_0000 0A6A5A4_A3A1A0 ->
-;-> 0100_0000 0A6A5A4_A3A2A1A0 0000_0000 0001_0000
-SET_VSRAM_WR_ADDR MACRO         ;VSRAM write command
-    MOVE.L \1, d0               ;Loading address into D0
-    SWAP d0                     ;Swap D0 words
-    ORI.L #$40000010, d0        ;Set bits 30,4 for VSRAM write command
-    MOVE.L d0, (a6)             ;Write to VDP Control Port 
-    ENDM      
+    include "inc\macros.asm"
+ 
 
 
 
-   
+
+ 
 ;-----------------------Vector table------------------------
     ORG    $0000    ;Origin (Memory mapping)
         
@@ -122,26 +97,35 @@ START:                       ; first instruction of program
     MOVE.L (a0)+, (a5)                     ;Send data to VDP
     DBF d1, .VramWriteLoop                 ;Repeat until d1 = -1
   
- ;Writing data to CRAM
-    SET_CRAM_WR_ADDR #18                   ;Write to CRAM, color 9
-;           0000BBB0GGG0RRR0
-   MOVE.W #%0000000010001110, (a5)         ;Send data to VDP
-   
-   
-   
+
 MAIN_LOOP:
 ;------------------------MAIN loop start--------------------
- 
+
+
+ ;Writing data to ÑRAM
+    LEA PALETTE_GRADIENT, a0                    ;Load data address into a0
+    MOVE.W #(PALETTE_GRADIENT_SIZE / 2)-1, d1   ;d1 = loop counter
+.loop
+    SET_CRAM_WR_ADDR #18                        ;Write to CRAM, color 9
+    MOVE.W (a0)+, (a5)                          ;Send data to VDP
+    DELAY #20
+    DBF d1, .loop                               ;Repeat until d1 = -1
+
+
+    
+   
+
+
+
   ;CODE
 
 ;------------------------MAIN loop end----------------------
     BRA MAIN_LOOP       ;Branch Always
-    
-    
-    
+
   ;SUBROUTINES
 
- 
+
+
 ;------------------------Tiles------------------------------
 
 EMOJI_TILE:
@@ -155,9 +139,143 @@ EMOJI_TILE:
     dc.l    $00999900
 EMOJI_TILE_END:
 EMOJI_TILE_SIZE EQU (EMOJI_TILE_END-EMOJI_TILE)
+
+PALETTE_GRADIENT:
+    dc.w %0000000000001110
+    dc.w %0000000000001110
+    dc.w %0000000000101110
+    dc.w %0000000000101110
+    dc.w %0000000000101110
+    dc.w %0000000001001110
+    dc.w %0000000001001110
+    dc.w %0000000001001110
+    dc.w %0000000001101110
+    dc.w %0000000001101110
+    dc.w %0000000001101110
+    dc.w %0000000010001110
+    dc.w %0000000010001110
+    dc.w %0000000010001110
+    dc.w %0000000010101110
+    dc.w %0000000010101110
+    dc.w %0000000010101110
+    dc.w %0000000011001110
+    dc.w %0000000011001110
+    dc.w %0000000011001110
+    dc.w %0000000011101110
+    dc.w %0000000011101110
+    dc.w %0000000011101110
+    dc.w %0000000011101100
+    dc.w %0000000011101100
+    dc.w %0000000011101100
+    dc.w %0000000011101010
+    dc.w %0000000011101010
+    dc.w %0000000011101010
+    dc.w %0000000011101000
+    dc.w %0000000011101000
+    dc.w %0000000011101000
+    dc.w %0000000011101000
+    dc.w %0000000011100110
+    dc.w %0000000011100110
+    dc.w %0000000011100110
+    dc.w %0000000011100100
+    dc.w %0000000011100100
+    dc.w %0000000011100100
+    dc.w %0000000011100010
+    dc.w %0000000011100010
+    dc.w %0000000011100010
+    dc.w %0000000011100000
+    dc.w %0000000011100000
+    dc.w %0000000011100000
+    dc.w %0000001011100000
+    dc.w %0000001011100000
+    dc.w %0000001011100000
+    dc.w %0000010011100000
+    dc.w %0000010011100000
+    dc.w %0000010011100000
+    dc.w %0000011011100000
+    dc.w %0000011011100000
+    dc.w %0000011011100000
+    dc.w %0000100011100000
+    dc.w %0000100011100000
+    dc.w %0000100011100000
+    dc.w %0000101011100000
+    dc.w %0000101011100000
+    dc.w %0000101011100000
+    dc.w %0000110011100000
+    dc.w %0000110011100000
+    dc.w %0000110011100000
+    dc.w %0000111011100000
+    dc.w %0000111011100000
+    dc.w %0000111011100000
+    dc.w %0000111011000000
+    dc.w %0000111011000000
+    dc.w %0000111011000000
+    dc.w %0000111010100000
+    dc.w %0000111010100000
+    dc.w %0000111010100000
+    dc.w %0000111010000000
+    dc.w %0000111010000000
+    dc.w %0000111010000000
+    dc.w %0000111001100000
+    dc.w %0000111001100000
+    dc.w %0000111001100000
+    dc.w %0000111001000000
+    dc.w %0000111001000000
+    dc.w %0000111001000000
+    dc.w %0000111000100000
+    dc.w %0000111000100000
+    dc.w %0000111000100000
+    dc.w %0000111000000000
+    dc.w %0000111000000000
+    dc.w %0000111000000000
+    dc.w %0000111000000010
+    dc.w %0000111000000010
+    dc.w %0000111000000010
+    dc.w %0000111000000100
+    dc.w %0000111000000100
+    dc.w %0000111000000100
+    dc.w %0000111000000110
+    dc.w %0000111000000110
+    dc.w %0000111000000110
+    dc.w %0000111000000110
+    dc.w %0000111000001000
+    dc.w %0000111000001000
+    dc.w %0000111000001000
+    dc.w %0000111000001010
+    dc.w %0000111000001010
+    dc.w %0000111000001010
+    dc.w %0000111000001100
+    dc.w %0000111000001100
+    dc.w %0000111000001100
+    dc.w %0000111000001110
+    dc.w %0000111000001110
+    dc.w %0000111000001110
+    dc.w %0000110000001110
+    dc.w %0000110000001110
+    dc.w %0000110000001110
+    dc.w %0000101000001110
+    dc.w %0000101000001110
+    dc.w %0000101000001110
+    dc.w %0000100000001110
+    dc.w %0000100000001110
+    dc.w %0000100000001110
+    dc.w %0000011000001110
+    dc.w %0000011000001110
+    dc.w %0000011000001110
+    dc.w %0000010000001110
+    dc.w %0000010000001110
+    dc.w %0000010000001110
+    dc.w %0000001000001110
+    dc.w %0000001000001110
+    dc.w %0000001000001110
+    dc.w %0000000000001110
+PALETTE_GRADIENT_END:
+PALETTE_GRADIENT_SIZE EQU (PALETTE_GRADIENT_END-PALETTE_GRADIENT)
   
   
         END    START        ; last line of source
+
+
 
 
 
