@@ -24,7 +24,7 @@ VDPREG_INCR         EQU     $8F00                   ; Autoincrement
 VDPREG_BGCOL        EQU     $8700                   ; Background color
 VDPREG_HRATE        EQU     $8A00                   ; HBlank interrupt rate
 
-PLAINA_ADDR         EQU     $A000                   ;Plane A VRAM base address
+PLANEA_ADDR         EQU     $A000                   ;Plane A VRAM base address
 PLANEB_ADDR         EQU     $C000                   ;Plane B VRAM base address
 WINDOW_ADDR         EQU     $E000                   ;Window plain VRAM base address
 SPRITE_TABLE_ADDR   EQU     $E800                   ;Sprite table VRAM base address
