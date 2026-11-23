@@ -27,6 +27,10 @@
         dc.l    STACK_TOP   ;Stack pointer
         dc.l    START       ;Program start address    
 
+    ORG    $0070            ;Level 4 Interrupt Autovector (H-INT)
+
+        dc.l    HBlankHandler
+
     ORG    $0100
     
         dc.l    'SEGA'      ;TMSS 
@@ -38,40 +42,35 @@
    
 START:                        ; first instruction of program
 
-;VDP unlock
-    MOVE.B $00A10001, d0      ;Read hardware version
-    ANDI.B #$0F, d0           ;Mask version bits (D3-D0)
-    BEQ .Skip                 ;Skip if revision 0
-    MOVE.L #'SEGA', $00A14000 ;Unlock VDP
-.Skip 
+    TMSS_UNLOCK               ;Unlock VDP if needed
 
 ;Hardware setup        
     LEA VDP_DATA_PORT, a5     ;VDP_DATA_PORT_ADDRESS    -> a5
     LEA VDP_CONTROL_PORT, a6  ;VDP_CONTROL_PORT_ADDRESS -> a6
     VDP_INIT                  ;Initialize VDP and load initial data into VRAM
-
+    MOVE.W #$2300, sr         ;Vblank, Hblank interrupt enable (interrupt priority = 3)
 
 MAIN_LOOP:
 ;========================MAIN loop start====================
 
-       ;Update HScroll
-    DELAY #20                              ;Wait 20ms
-    SUBQ.W #1, d7                          ;Decrement scroll counter
-    SET_VRAM_WR_ADDR #HSCROLL_TABLE_ADDR   ;Set VDP write to HScroll table  
-    MOVE.L d7, (a5)                        ;Write scroll value to VDP data port       
-
-
+ 
 
 ;========================MAIN loop end======================
     BRA MAIN_LOOP       ;Branch Always
 
 
 
+;------------------Horizontal Interrupt Handler-------------
+HBlankHandler:
 
-
-
-
-
+    ;Writing data to CRAM
+    SET_CRAM_WR_ADDR #$00                  ;Write to CRAM
+    LEA PALETTEDATA, a0                    ;Load data address into a0
+    MOVE.W #(PALETTEDATA_SIZE / 2)-1, d1   ;d1 = loop counter
+.CramWriteLoop
+    MOVE.W (a0)+, (a5)                     ;Send data to VDP
+    DBF d1, .CramWriteLoop                 ;Repeat until d1 = -1
+    RTE
 
 
 
@@ -103,6 +102,10 @@ WINDOW_TABLE_SIZE EQU (32*28*2)         ;32*28 tiles, 2 bytes each
 
 
         END    START        ; last line of source
+
+
+
+
 
 
 

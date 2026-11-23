@@ -43,12 +43,12 @@ DELAY MACRO                     ;Delay for milliseconds
 ;Initialize VDP and load initial data into VRAM    
 VDP_INIT MACRO
  ;(Set VDP reg -> VDP_CONTROL_PORT)
-    MOVE.W #VDPREG_MODE1|%00000100, (a6)                  ;(b2 - (1) normal operation)
+    MOVE.W #VDPREG_MODE1|%00010100, (a6)                  ;(b2 - (1) normal operation)
     MOVE.W #VDPREG_MODE2|%01000100, (a6)                  ;(b6 - (1) Enable display), (b2 - (1) Mega Drive (mode 5) display)
     MOVE.W #VDPREG_MODE3|%00000000, (a6)                  ;V/H scroll full screen
     MOVE.W #VDPREG_MODE4|%00000000, (a6)                  ;256 pixel (32 cell) wide mode (H32 mode)
     MOVE.W #VDPREG_BGCOL|%00000000, (a6)                  ;Background Colour: Palette 0, Colour 0
-    MOVE.W #VDPREG_HRATE|%00000000, (a6)                  ;Number of scanlines between horizontal interrupts, Not used 
+    MOVE.W #VDPREG_HRATE|%00000101, (a6)                  ;Number of scanlines between horizontal interrupts  5
     MOVE.W #VDPREG_SIZE|%00000011, (a6)                   ;Plane A,B size H128*V32 cells
     MOVE.W #VDPREG_INCR|%00000010, (a6)                   ;Auto-Increment Value 2
     MOVE.W #VDPREG_WINX|%00000000, (a6)                   ;Window Plane Horizontal Position, Not used 
@@ -85,7 +85,7 @@ VDP_INIT MACRO
 
                             ;Writing data
                             
- ;Writing data to ÑRAM
+ ;Writing data to CRAM
     SET_CRAM_WR_ADDR #$00                  ;Write to CRAM
     LEA PALETTEDATA, a0                    ;Load data address into a0
     MOVE.W #(PALETTEDATA_SIZE / 2)-1, d1   ;d1 = loop counter
@@ -121,13 +121,17 @@ VDP_INIT MACRO
 .WindowPlaneWriteLoop                      ;VRAM write loop
     MOVE.L (a0)+, (a5)                     ;Send data to VDP
     DBF d1, .WindowPlaneWriteLoop          ;Repeat until d1 = -1 
-
- 
     ENDM 
     
 
-
-
+;TMSS_UNLOCK (d0)
+TMSS_UNLOCK MACRO
+    MOVE.B $00A10001, d0      ;Read hardware version
+    ANDI.B #$0F, d0           ;Mask version bits (D3-D0)
+    BEQ .Skip                 ;Skip if revision 0
+    MOVE.L #'SEGA', $00A14000 ;Unlock VDP
+.Skip 
+    ENDM
 
 
 
