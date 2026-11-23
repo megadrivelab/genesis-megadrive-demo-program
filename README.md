@@ -11,8 +11,8 @@ Created as part of the [Mega Drive Lab](https://youtube.com/@MegaDriveLabEN) You
 
 ### What it does
 - Displays a space-themed scene (Earth, Moon, starfield)
-- Horizontally scrolls the starfield background
-- Demonstrates VDP initialization, tile loading, plane setup, and horizontal scroll
+- Demonstrates CRAM dots using horizontal interrupts (H-Int)
+- Demonstrates VDP initialization, tile loading, and plane setup
 
 ### Previous versions
 Each release corresponds to a working version from the tutorial videos.  
@@ -38,8 +38,8 @@ Click **[Releases](../../releases)** to download and browse older versions.
 
 ### Что делает
 - Показывает космическую сцену (Земля, Луна, звёздное небо)
-- Горизонтальный сдвиг звёздного неба
-- Демонстрирует инициализацию VDP, загрузку тайлов и горизонтальный скролл
+- Демонстрирует эффект CRAM dots с использованием горизонтальных прерываний (H-Int)
+- Демонстрирует инициализацию VDP, загрузку тайлов и настройку плоскостей
 
 ### Предыдущие версии
 Каждый релиз соответствует работающей версии программы из видео.  
